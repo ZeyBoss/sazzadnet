@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAZZAD's NETWORK</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,0.13) 0px,
+          rgba(0,0,0,0.13) 1px,
+          transparent 1px,
+          transparent 3px
+        ),
+        radial-gradient(ellipse at center,
+          rgba(0,0,0,0.1) 0%,
+          rgba(0,0,0,0.6) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #mainPage {
+      position: fixed; inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.8rem;
+      padding: 2rem;
+      text-align: center;
+      animation: contentIn 1.2s ease forwards;
+    }
+    @keyframes contentIn {
+      from { opacity: 0; transform: translateY(35px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+      background: rgba(0, 8, 2, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0,255,70,0.25);
+      border-radius: 4px;
+      padding: 2.8rem 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.8rem;
+      box-shadow:
+        0 0 40px rgba(0,255,70,0.08),
+        0 0 80px rgba(0,255,70,0.04),
+        0 20px 60px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(0,255,70,0.1);
+      max-width: 480px;
+      width: 92vw;
+      position: relative;
+    }
+    .glass-card::before,
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border-color: #00ff46;
+      border-style: solid;
+    }
+    .glass-card::before {
+      top: -1px; left: -1px;
+      border-width: 2px 0 0 2px;
+    }
+    .glass-card::after {
+      bottom: -1px; right: -1px;
+      border-width: 0 2px 2px 0;
+    }
+
+    .logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .logo-icon {
+      width: 100px; height: 100px;
+      animation: logoFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 18px #00f0ff)
+              drop-shadow(0 0 36px rgba(0,240,255,0.4));
+    }
+    @keyframes logoFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-10px) scale(1.04); }
+    }
+
+    .logo-ant {
+      animation: antPulse 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes antPulse {
+      from { opacity: 0.3; }
+      to   { opacity: 1; }
+    }
+
+    .site-title {
+      font-size: clamp(1.8rem, 6.5vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+      background: linear-gradient(135deg,
+        #00ff46 0%, #00ffcc 40%, #00ff46 70%, #39ff14 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleGlow 3s ease-in-out infinite alternate;
+      position: relative;
+    }
+    @keyframes rippleAnim { to { transform:scale(4); opacity:0; } }
+
+    .btn-1 {
+      background: linear-gradient(135deg, #0050cc, #00c6ff);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(0,160,255,0.5),
+                  0 0 0 1px rgba(0,200,255,0.25);
+    }
+    .btn-1:hover {
+      box-shadow: 0 8px 36px rgba(0,160,255,0.7),
+                  0 0 0 2px rgba(0,200,255,0.45);
+    }
+    .btn-2 {
+      background: linear-gradient(135deg, #7000cc, #ff006e);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(180,0,200,0.5),
+                  0 0 0 1px rgba(200,0,150,0.25);
+    }
+    .btn-2:hover {
+      box-shadow: 0 8px 36px rgba(180,0,200,0.7),
+                  0 0 0 2px rgba(220,0,160,0.45);
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 1.2rem;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.15em;
+      z-index: 3;
+    }
+
+    .connected-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(0,255,136,0.1);
+      border: 1px solid rgba(0,255,136,0.35);
+      border-radius: 50px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: #00ff88;
+      text-transform: uppercase;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      background: #00ff88;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff88;
+      animation: badgePulse 1.2s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+      0%,100% { opacity: 1;   box-shadow: 0 0 8px #00ff88; }
+      50%     { opacity: 0.4; box-shadow: 0 0 2px #00ff88; }
+    }
+    
+    .net-stats {
+      display: flex;
+      gap: 1.2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.18rem;
+    }
+    .stat-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      color: rgba(0,255,70,0.45);
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+    .stat-value {
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-family: monospace;
+      color: #00ff46;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 10px rgba(0,255,70,0.7);
+    }
+    .stat-value span {
+      font-size: 0.6rem;
+      color: rgba(0,255,70,0.55);
+      font-weight: 400;
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+    .signal-bars div {
+      width: 4px;
+      background: #00ff46;
+      border-radius: 1px;
+      box-shadow: 0 0 4px #00ff46;
+      animation: barPulse 1.6s ease-in-out infinite;
+    }
+    .signal-bars div:nth-child(1) { height: 4px;  animation-delay: 0s; }
+    .signal-bars div:nth-child(2) { height: 7px;  animation-delay: 0.2s; }
+    .signal-bars div:nth-child(3) { height: 10px; animation-delay: 0.4s; }
+    .signal-bars div:nth-child(4) { height: 14px; animation-delay: 0.6s; }
+    @keyframes barPulse {
+      0%,100% { opacity: 1; }
+      50%     { opacity: 0.3; }
+    }
+
+    .data-ticker {
+      width: 100%;
+      overflow: hidden;
+      border-top: 1px solid rgba(0,255,70,0.15);
+      border-bottom: 1px solid rgba(0,255,70,0.15);
+      padding: 0.35rem 0;
+      position: relative;
+    }
+    .data-ticker::before,
+    .data-ticker::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 30px;
+      z-index: 2;
+    }
+    .data-ticker::before { left: 0;  background: linear-gradient(to right, rgba(0,8,2,0.9), transparent); }
+    .data-ticker::after  { right: 0; background: linear-gradient(to left,  rgba(0,8,2,0.9), transparent); }
+    .ticker-track {
+      display: flex;
+      gap: 2.5rem;
+      animation: tickerScroll 18s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      font-size: 0.62rem;
+      font-family: monospace;
+      letter-spacing: 0.12em;
+      color: rgba(0,255,70,0.6);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .ticker-item .ti-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 420px) {
+      .glass-card { padding: 2rem 1.4rem; }
+      .net-stats { gap: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+  <div id="overlay"></div>
+
+  <div id="mainPage">
+    <div class="main-content">
+      <div class="glass-card">
+
+        <div class="connected-badge">
+          <div class="badge-dot"></div>
+          Connected to Network
+        </div>
+
+        <div class="logo-area">
+          <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#00ff46"/>
+                <stop offset="50%"  stop-color="#00ffcc"/>
+                <stop offset="100%" stop-color="#00ff46"/>
+              </linearGradient>
+              <linearGradient id="rg2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%"   stop-color="rgba(0,255,70,0.35)"/>
+                <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+              </linearGradient>
+              <filter id="rf1" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="rf2" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="58" r="44" fill="none" stroke="rgba(0,240,255,0.1)" stroke-width="8"/>
+            <rect x="18" y="58" width="64" height="30" rx="7"
+                  fill="#080d1c" stroke="url(#rg1)" stroke-width="1.8"/>
+            <rect x="20" y="59" width="60" height="12" rx="5" fill="url(#rg2)"/>
+            <rect x="18" y="58" width="64" height="3" rx="2"
+                  fill="url(#rg1)" opacity="0.9" filter="url(#rf1)"/>
+            <circle cx="32" cy="74" r="3.2" fill="#00ff88" filter="url(#rf1)"/>
+            <circle cx="42" cy="74" r="3.2" fill="#00ff88" filter="url(#rf1)"/>
+            <circle cx="52" cy="74" r="3.2" fill="#ffaa00" filter="url(#rf1)"/>
+            <circle cx="62" cy="74" r="3.2" fill="#0088ff" filter="url(#rf1)"/>
+            <circle cx="72" cy="74" r="3.2" fill="#00ff88" filter="url(#rf1)"/>
+            <text x="50" y="84" text-anchor="middle"
+                  fill="#00f0ff" font-size="5.5" font-weight="bold"
+                  letter-spacing="2" font-family="monospace">S·NET</text>
+            <circle cx="76" cy="65" r="4" fill="#050a15" stroke="#00f0ff" stroke-width="1.2"/>
+            <path d="M76 62 L76 65 M73.5 63 A3.5 3.5 0 1 0 78.5 63"
+                  stroke="#00f0ff" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <rect x="22" y="71" width="7" height="5" rx="1.5"
+                  fill="#050a15" stroke="#0050aa" stroke-width="0.8"/>
+            <line x1="30" y1="58" x2="16" y2="22"
+                  stroke="url(#rg1)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="15" cy="18" r="4" fill="#00f0ff" filter="url(#rf2)" class="logo-ant"/>
+            <line x1="50" y1="58" x2="50" y2="14"
+                  stroke="url(#rg1)" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="50" cy="10" r="5" fill="#00f0ff" filter="url(#rf2)"
+                    class="logo-ant" style="animation-delay:0.3s"/>
+            <line x1="70" y1="58" x2="84" y2="22"
+                  stroke="url(#rg1)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="85" cy="18" r="4" fill="#00f0ff" filter="url(#rf2)"
+                    class="logo-ant" style="animation-delay:0.6s"/>
+            <g transform="translate(50,44)">
+              <path d="M-9,-9 A13,13 0 0,1 9,-9"
+                    stroke="#00f0ff" stroke-width="2.2" fill="none"
+                    stroke-linecap="round" class="logo-ant"/>
+              <path d="M-17,-15 A24,24 0 0,1 17,-15"
+                    stroke="#0070ff" stroke-width="1.8" fill="none"
+                    stroke-linecap="round" class="logo-ant" style="animation-delay:0.2s"/>
+              <path d="M-26,-22 A36,36 0 0,1 26,-22"
+                    stroke="#9b00ff" stroke-width="1.4" fill="none"
+                    stroke-linecap="round" class="logo-ant" style="animation-delay:0.4s"/>
+              <circle cx="0" cy="0" r="3" fill="#00f0ff" filter="url(#rf1)"/>
+            </g>
+          </svg>
+          <h1 class="site-title" data-text="SAZZAD's NETWORK">SAZZAD's NETWORK</h1>
+          <p class="site-subtitle">Your Gateway to Entertainment</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="net-stats">
+          <div class="stat-item">
+            <div class="stat-label">Download</div>
+            <div class="stat-value" id="dlSpeed">—<span> Mbps</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Upload</div>
+            <div class="stat-value" id="ulSpeed">—<span> Mbps</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Ping</div>
+            <div class="stat-value" id="pingVal">—<span> ms</span></div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Signal</div>
+            <div class="signal-bars">
+              <div></div><div></div><div></div><div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-ticker">
+          <div class="ticker-track" id="tickerTrack"></div>
+        </div>
+
+        <div class="btn-group">
+          <a href="#" class="btn btn-1"
+             onclick="openLink(event,'LINK_1_PLACEHOLDER')">
+            🌐 Worldwide Movies 🎥
+          </a>
+          <a href="#" class="btn btn-2"
+             onclick="openLink(event,'LINK_2_PLACEHOLDER')">
+            📡 TV Shows 📺
+          </a>
+        </div>
+
+      </div>
+    </div>
+    <div class="footer">© SAZZAD's NETWORK · ALL RIGHTS RESERVED</div>
+  </div>
+
+  <script>
+  const canvas = document.getElementById('bgCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, cols, drops;
+  const FONT_SIZE = 14;
+  const CHARS = '01アイウエオカキクケコ#$%&@!<>{}ABCDEF0123456789/:=?ニヌネノタチツ';
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cols  = Math.floor(W / FONT_SIZE);
+    drops = Array.from({length: cols}, () => Math.random() * -80);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const speeds     = Array.from({length: 300}, () => 0.5 + Math.random() * 1.4);
+  const brightCols = new Set();
+
+  function refreshBright() {
+    brightCols.clear();
+    const n = Math.floor(cols * 0.07);
+    for (let i = 0; i < n; i++) brightCols.add(Math.floor(Math.random() * cols));
+  }
+  refreshBright();
+  setInterval(refreshBright, 2000);
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = FONT_SIZE + 'px monospace';
+
+    for (let i = 0; i < cols; i++) {
+      const ch = CHARS[Math.floor(Math.random() * CHARS.length)];
+      const x  = i * FONT_SIZE;
+      const y  = drops[i] * FONT_SIZE;
+
+      if (brightCols.has(i)) {
+        ctx.fillStyle   = '#ccffdd';
+        ctx.shadowColor = '#00ff46';
+        ctx.shadowBlur  = 14;
+      } else if (drops[i] > 0 && drops[i] < 5) {
+        ctx.fillStyle   = '#afffca';
+        ctx.shadowColor = '#00ff46';
+        ctx.shadowBlur  = 8;
+      } else {
+        ctx.fillStyle  = 'rgba(0,' + (155 + Math.floor(Math.random()*100)) + ',55,' + (0.55 + Math.random()*0.45) + ')';
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.fillText(ch, x, y);
+
+      if (y > H && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += (speeds[i % speeds.length] || 1);
+    }
+  }
+
+  setInterval(drawMatrix, 33);
+
+  function randBetween(a, b) { return (Math.random() * (b - a) + a).toFixed(1); }
+
+  function updateStats() {
+    document.getElementById('dlSpeed').innerHTML = randBetween(85, 980) + '<span> Mbps</span>';
+    document.getElementById('ulSpeed').innerHTML = randBetween(40, 500) + '<span> Mbps</span>';
+    document.getElementById('pingVal').innerHTML = randBetween(2, 18)   + '<span> ms</span>';
+  }
+  updateStats();
+  setInterval(updateStats, 2200);
+
+  const tickerItems = [
+    { color: '#00ff88', text: 'IPv6 ENABLED' },
+    { color: '#00f0ff', text: 'PACKETS: 0xA4F2' },
+    { color: '#ffaa00', text: 'DNS: SECURED' },
+    { color: '#9b00ff', text: 'FIREWALL: ACTIVE' },
+    { color: '#00f0ff', text: 'SSL/TLS 1.3' },
+    { color: '#00ff88', text: 'UPTIME: 99.9%' },
+    { color: '#ff006e', text: 'P2P: OPTIMIZED' },
+    { color: '#00f0ff', text: 'CDN: GLOBAL' },
+    { color: '#ffaa00', text: 'WPA3: ON' },
+    { color: '#00ff88', text: 'LATENCY: LOW' },
+    { color: '#9b00ff', text: 'BANDWIDTH: MAX' },
+    { color: '#00f0ff', text: 'ENCRYPTION: AES-256' },
+  ];
+    
+  function buildTicker() {
+    const track = document.getElementById('tickerTrack');
+    const all = [...tickerItems, ...tickerItems];
+    track.innerHTML = all.map(item => `
+      <div class="ticker-item">
+        <div class="ti-dot" style="background:${item.color};box-shadow:0 0 6px ${item.color}"></div>
+        ${item.text}
+      </div>
+    `).join('');
+  }
+    buildTicker();
+
+  setInterval(() => {
+    const hex = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
+    const items = document.querySelectorAll('.ticker-item');
+    items.forEach(el => {
+      if (el.textContent.includes('PACKETS')) {
+        el.innerHTML = el.innerHTML.replace(/0x[0-9A-F]+/, '0x' + hex);
+      }
+    });
+  }, 800);
+
+  function openLink(e, url) {
+    e.preventDefault();
+    if (url && !url.includes('PLACEHOLDER')) window.open(url,'_blank');
+    const btn  = e.currentTarget;
+    const r    = document.createElement('span');
+    r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${e.clientX-rect.left-size/2}px;
+      top:${e.clientY-rect.top-size/2}px;
+    `;
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 700);
+  }
+  </script>
+</body>
+</html>
